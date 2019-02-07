@@ -1,0 +1,90 @@
+#in model 
+
+public function disableDatesProperty($propertyID){
+    	$this->db->select('*');
+		$this->db->from('propertybooking');
+		$this->db->where_in('propertyid',$propertyID);		
+		$query = $this->db->get(); 
+		if($query->num_rows() > 0){
+			return $query->result_array();    	
+		}else{
+			return false;
+		}  	
+	}
+  
+=============================================================
+#in controller
+
+$disableDatesProperty= $this->propertymod->disableDatesProperty($id);
+
+if(!empty($disableDatesProperty)){
+    foreach ($disableDatesProperty as $key => $value) {
+    
+      $start = date('d-m-Y', $value['bookingfrom']);
+      $start = date('d-m-Y', strtotime("+1 day", strtotime($start)));
+      $start = strtotime($start);
+      $end = $value['bookingto'];
+
+      for ($i1 = $start; $i1 < $end; $i1 +=86400) {   //Find all dates between from to 
+            $dateslistselect1[]= '"'.date('d-m-Y',$i1).'"';   
+            }
+    }
+    if(!empty($dateslistselect1)){
+       $dateslistselect1[]= '"'.date('d-m-Y',$i1).'"';
+    }else{
+      $dateslistselect1[]= '';
+    }
+    $dateslistselect1=array_filter($dateslistselect1);
+    $data['bookingDates'] =implode(", ", $dateslistselect1); 
+  }
+  ==========================================================================
+  
+  #in view disable dates in datepicker
+  
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
+  <script>
+  <?php if(!empty($bookingDates)  && $bookingDates !=''){?>
+      var disableddates = [<?php echo $bookingDates; ?>];
+  <?php }else{ ?>
+       disableddates = '';
+  <?php } ?>
+  
+function DisableSpecificDates(date) {
+   var string = jQuery.datepicker.formatDate('dd-mm-yy', date);
+   return [disableddates.indexOf(string) == -1];
+}
+
+$(document).ready(function(){
+  $("#dpd1, #calarrival").datepicker({
+    minDate : new Date(),
+    beforeShowDay: DisableSpecificDates,
+    showAnim:'drop',
+    numberOfMonths:1,
+    //showButtonPanel: true,
+   dateFormat:'MM dd yy',
+     onSelect: function (selected) {
+                    //$("#dpd2").focus();
+                    var dt = new Date(selected);
+                    dt.setDate(dt.getDate() + 1);
+                    $("#dpd2, #caldepart").datepicker("option", "minDate", dt);
+                }
+  });
+
+  $("#dpd2, #caldepart").datepicker({
+    minDate : new Date(),
+    beforeShowDay: DisableSpecificDates,
+    showAnim:'drop',
+    numberOfMonths:1,
+    //showButtonPanel: true,
+   dateFormat:'MM dd yy',
+     onSelect: function (selected) {
+                    // $("#dpd1").focus();
+                    var dt = new Date(selected);
+                    dt.setDate(dt.getDate() - 1);
+                   // $("#dpd1, #calarrival").datepicker("option", "minDate", dt);
+                }
+  });
+  
+});
+</script>
