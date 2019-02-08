@@ -1,0 +1,25 @@
+#in controller
+
+$checkin = date("Y-m-d", strtotime($_POST['getBookStartDate']));
+$checkout = date("Y-m-d", strtotime($_POST['getBookEndDate']));
+
+$datePeriod = $this->returnDates($checkin, $checkout);
+
+foreach($datePeriod as $date) {
+  $ad1[] = strtotime($date->format('Y-m-d'));
+}
+array_pop($ad1);
+$day_a = count($ad1)+1 ;
+$total_nights = count($ad1);
+==========================================================================
+
+function returnDates($date1, $date2){
+  $d1 = date("Y-m-d", strtotime($date1));
+  $d2 = date("Y-m-d", strtotime($date2));
+  $begin = new DateTime($d1);
+  $end = new DateTime($d2);
+  $end = $end->modify( '+1 day' ); 
+  $interval = new DateInterval('P1D');
+  $daterange = new DatePeriod($begin, $interval ,$end);
+  return $daterange;
+}
