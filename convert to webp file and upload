@@ -1,0 +1,89 @@
+   public function uploadMultiGallery(){
+         if(isset($_FILES['file']['name'])){
+            $propertyid = $_GET['propertyid'];
+            $path = $_FILES['file']['name'];
+            $ext = pathinfo($path, PATHINFO_EXTENSION);
+            $name = md5(time()).date('s').round(microtime(true) * 1000); 
+            $image_path   = IMAGE_UPLOAD_PATH.$propertyid.'/';
+            if(!is_dir($image_path)){
+                mkdir($image_path,0777, true);
+            }
+            $folder_path_thumb = IMAGE_UPLOAD_PATH_THUMB.$propertyid.'/';
+            if(!is_dir($folder_path_thumb)) {
+                mkdir($folder_path_thumb,0777, true);
+            }
+            $bfile_name = $name . "." . $ext;
+            $_FILES['file']['name'] = $bfile_name;
+            // check images for package
+             $this->db->select('*');
+             $this->db->where('property_id', $_GET['propertyid']);
+             $this->db->where('status', 'Active');
+             $query = $this->db->get('propertyphotos');
+
+             $propp = $this->modeldb->gettabledata('properties', array('property_id'=> $_GET['propertyid']));
+             $package = $propp[0]->packagetype;
+             if($package == 'Trail' || $package == 'Gold'){
+                $uploadmax = 20;
+             }else{
+                 $uploadmax = 40;
+             }
+            // check images for package
+            if($query->num_rows() >= $uploadmax){
+                 set_flashdata('error', 'You have '.$propp[0]->packagetype.' package, your image(s) upload limit is only 20, Please upgrade package to upload more image(s).');
+                $res['status'] = 'error'; 
+                $res['msg'] = 'You have exceeded max uploaded image(s), only 20 images allowed';
+             }else{
+                if($ext == 'webp'){
+                    $config['upload_path'] = $folder_path_thumb;
+                    $config['allowed_types']  = '*';
+                }else{
+                    $config['upload_path'] = $image_path;
+                    $config['allowed_types']  = 'gif|jpg|png|GIF|JPG|PNG|JPEG|jpeg';
+                }
+                $config['max_size'] = '6144';  
+                $this->load->library('upload');
+                $this->upload->initialize($config);
+                if (!$this->upload->do_upload('file')) {
+                    set_flashdata('error', $this->upload->display_errors());
+                    $res['msg'] =  $this->upload->display_errors();
+                    $res['status'] = 'error';
+                } else {
+                // upload to image folder
+                    $data = array('image_metadata' => $this->upload->data());
+                    $imagename = $data['image_metadata']['file_name'];
+                    echo 'success image';
+                if($ext != 'webp'){
+                    $file = $image_path.$imagename;  //image name
+                    // upload webp after convert the file
+                    $image = imagecreatefromstring(file_get_contents($file));
+                    ob_start();
+                    imagejpeg($image,NULL,100);
+                    $cont = ob_get_contents();
+                    ob_end_clean();
+                    imagedestroy($image);
+                    $content = imagecreatefromstring($cont);
+                    $output = $folder_path_thumb.$name.'.webp';
+                    imagewebp($content,$output);
+                    imagedestroy($content);
+                    // upload webp after convert the file
+                // unlink image from photos
+                unlink($file);
+            }
+                $photoorder = $query->num_rows()+1 ;
+                $up['property_id'] = $this->input->get('propertyid');
+                $up['photoname'] = $name.'.webp';
+                $up['filesize'] = $_FILES['file']['size'];
+                $up['photoorder'] = $photoorder;
+                $up['added_date'] = current_date();
+                $result_data = $this->properties_mod->add('propertyphotos', $up);
+                set_flashdata('success', 'You have successfully uploaded image(s)');
+                $res['status'] = 'success'; 
+                $res['msg'] = 'You have successfully uploaded image(s)';
+         
+        }
+                
+    }
+        echo json_encode($res);
+        die;
+    }
+}
