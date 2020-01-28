@@ -32,9 +32,7 @@ public function postCURL($_url, $_param){
         curl_close($ch);
         return $output;
     }
-    
-
-function getBookOnChangeForm(){
+   function getBookOnChangeForm(){
     	//print_r($_POST);
     	$propertyid = $_POST['getBookpropertyid'];
     	$pro_id = $_POST['getBookpropertyid'];
@@ -58,12 +56,12 @@ function getBookOnChangeForm(){
     		$query1 = $this->db->query($rData1);
 			$rshow1 = $query1->row_array();
             
-            @$admin_fee        = round($rshow1['admin_fee'],2);
-			@$ref_dam_waer_fee = round($rshow1['ref_dam_waer_fee'],2);
-			@$dam_waer_fee     = round($rshow1['dam_waer_fee'],2);
-			@$pet_fee          = round($rshow1['pet_fee'],2);
-			@$pool_heat_fee    = round($rshow1['pool_heat_fee'],2);
-			@$tax_rate_fee     = round($rshow1['tax_rate_fee'],2);
+            @$admin_fee        = round(str_replace(",", "", $rshow1['admin_fee']),2);
+			@$ref_dam_waer_fee = round(str_replace(",", "", $rshow1['ref_dam_waer_fee']),2);
+			@$dam_waer_fee     = round(str_replace(",", "", $rshow1['dam_waer_fee']),2);
+			@$pet_fee          = round(str_replace(",", "", $rshow1['pet_fee']),2);
+			@$pool_heat_fee    = round(str_replace(",", "", $rshow1['pool_heat_fee']),2);
+			@$tax_rate_fee     = round(str_replace(",", "", $rshow1['tax_rate_fee']),2);
             //$guests = $guest;
             
                               $checkin = date("Y-m-d", strtotime($_POST['getBookStartDate']));
@@ -484,30 +482,20 @@ function getBookOnChangeForm(){
                               }
                               }
                               
-                             
-
-                              //echo $totaling; 
-                           
                               $Querycal = "select * from rental_rates_fee where propertyid='$pro_id'";
                               $query1 = $this->db->query($Querycal);
-                              //print_r($query1); 
-                              //$Rescal = mysqli_fetch_assoc($Querycal);
                               $Rescal 			= $query1->row_array();
 
-                              // echo "<pre>";
-                              // print_r($Rescal);
-                              // echo "<pre>";
+                              $admin_fee 		= @round(str_replace(",", "", $Rescal['admin_fee']),2);
+                              $clean 			= @round(str_replace(",", "", $Rescal['cleaning_fee']),2);   ////tax
+                              $tax 				= @round(str_replace(",", "", $Rescal['tax_rate_fee']),2);
+                              $ref_dam_waer_fee = @round(str_replace(",", "", $Rescal['ref_dam_waer_fee']),2);
+                              $dam_waer_fee 	= @round(str_replace(",", "", $Rescal['dam_waer_fee']),2);
+                              $pet_fee 			= @round(str_replace(",", "", $Rescal['pet_fee']),2);
 
-                              $admin_fee 		= @round($Rescal['admin_fee'],2);
-                              $clean 			= @round($Rescal['cleaning_fee'],2);   ////tax
-                              $tax 				= @round($Rescal['tax_rate_fee'],2);
-                              $ref_dam_waer_fee = @round($Rescal['ref_dam_waer_fee'],2);
-                              $dam_waer_fee 	= @round($Rescal['dam_waer_fee'],2);
-                              $pet_fee 			= @round($Rescal['pet_fee'],2);
-
-                              $pool_heat_fee 	= @round($Rescal['pool_heat_fee'],2);
-                              $pool_heat_type 	= @$Rescal['pool_heat_type'];
-                              $extra_person_fee 	= @round($Rescal['extra_person_fee'],2);
+                              $pool_heat_fee 	= @round(str_replace(",", "", $Rescal['pool_heat_fee']),2);
+                              $pool_heat_type 	= @str_replace(",", "", $Rescal['pool_heat_type']);
+                              $extra_person_fee 	= @round(str_replace(",", "", $Rescal['extra_person_fee']),2);
                               $extra_person_guest_select 	= explode(" ", @$Rescal['extra_person_guest_select']);
                               $extra_person11 = @$extra_person_guest_select[0];
 
